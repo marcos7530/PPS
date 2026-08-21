@@ -14,7 +14,7 @@ This plan implements a comprehensive Point of Sale system in .NET 8 with Blazor 
     - Set up global usings, nullable reference types, and code analysis
     - _Requirements: All (project scaffold)_
 
-  - [ ] 1.2 Implement domain value objects and core abstractions
+  - [x] 1.2 Implement domain value objects and core abstractions
     - Create `Money` value object (decimal with 2-decimal constraint, half-up rounding)
     - Create `Percentage` value object (decimal 0.00-1000.00, 2 decimal places)
     - Create `Barcode` value object with EAN-13, UPC-A, Code 128 validation and check digit verification
