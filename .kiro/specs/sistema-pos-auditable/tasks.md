@@ -56,8 +56,8 @@ This plan implements a comprehensive Point of Sale system in .NET 8 with Blazor 
     - Verify all monetary amounts have exactly 2 decimals, sum of parts equals totals, and idempotence of rounding
     - **Validates: Requirements 9.3, 15.11, 15.23, 19.3, 7.6**
 
-- [ ] 2. Implement database layer with EF Core and SQL Server
-  - [ ] 2.1 Create PosDbContext with entity configurations
+- [x] 2. Implement database layer with EF Core and SQL Server
+  - [x] 2.1 Create PosDbContext with entity configurations
     - Configure all entity mappings with correct column types (`decimal(18,2)`, `datetime2(3)`, `nvarchar`, `varchar`)
     - Configure collations: `Latin1_General_100_CI_AS` for username, user email, customer email, category name; `Latin1_General_100_CI_AI` for product name, customer name
     - Configure unique indexes, filtered indexes (active shift per drawer, active shift per user, active password reset token, active voucher payment)
@@ -66,14 +66,14 @@ This plan implements a comprehensive Point of Sale system in .NET 8 with Blazor 
     - Configure composite PKs (UserRole, CategoryClosure, DailySalesAggregate)
     - _Requirements: 2.2, 10.8, 10.9, 12.2, 12.3, 13.2, 14.2, 18.4_
 
-  - [ ] 2.2 Create AuditSaveChangesInterceptor
+  - [x] 2.2 Create AuditSaveChangesInterceptor
     - Implement `SaveChangesInterceptor` that derives before/after JSON from `ChangeTracker`
     - Insert `AuditLog` entries within the same transaction as the operation
     - On audit INSERT failure, ensure the entire transaction rolls back
     - Handle `WriteFailedAttemptAsync` for recording validation failures with `outcome='failure'`
     - _Requirements: 1.1, 1.2, 1.6, 1.7, 1.8_
 
-  - [ ] 2.3 Create initial EF Core migration with audit immutability DDL
+  - [x] 2.3 Create initial EF Core migration with audit immutability DDL
     - Generate migration with all tables, indexes, constraints, and partitioning for `audit_log`
     - Add SQL for `DENY UPDATE, DELETE, ALTER, CONTROL ON dbo.audit_log TO pos_app_role`
     - Add `INSTEAD OF UPDATE, DELETE` trigger on `audit_log` (THROW 50001)
@@ -84,7 +84,7 @@ This plan implements a comprehensive Point of Sale system in .NET 8 with Blazor 
     - Conditionally apply `LEDGER = ON (APPEND_ONLY = ON)` for SQL Server 2022+
     - _Requirements: 1.3, 1.4_
 
-  - [ ] 2.4 Implement SqlServerInventoryReservationGateway
+  - [x] 2.4 Implement SqlServerInventoryReservationGateway
     - Implement locking with `SELECT ... WITH (UPDLOCK, ROWLOCK, HOLDLOCK)` ordered by `product_id ASC`
     - Implement atomic stock adjustment within the current transaction
     - Use `FromSqlInterpolated` for the locking query
@@ -102,11 +102,11 @@ This plan implements a comprehensive Point of Sale system in .NET 8 with Blazor 
     - Verify username, user email, customer email, SKU, barcode, (parent, category name) uniqueness including deactivated entities, with case variations
     - **Validates: Requirements 2.2, 10.8, 10.9, 13.2, 14.2, 18.4, 18.5, 18.18**
 
-- [ ] 3. Checkpoint - Ensure all tests pass
+- [~] 3. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 4. Implement authentication, users, and roles
-  - [ ] 4.1 Implement BCryptPasswordHasher and AuthenticationService
+  - [~] 4.1 Implement BCryptPasswordHasher and AuthenticationService
     - Implement password hashing with BCrypt cost factor 12
     - Implement login with dummy verification for timing equality on invalid usernames
     - Implement session creation with 128-bit cryptographically random token, 8-hour expiration
@@ -115,7 +115,7 @@ This plan implements a comprehensive Point of Sale system in .NET 8 with Blazor 
     - Return identical error message "Invalid credentials" for wrong username and wrong password
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8_
 
-  - [ ] 4.2 Implement UserService with role management
+  - [~] 4.2 Implement UserService with role management
     - Implement user CRUD with username (1-50), email (valid, max 100), password, and roles
     - Enforce duplicate username/email rejection
     - Enforce last administrator protection (UPDLOCK counting on user_role)
@@ -123,7 +123,7 @@ This plan implements a comprehensive Point of Sale system in .NET 8 with Blazor 
     - Apply role permission changes on next session
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 5.1-5.8_
 
-  - [ ] 4.3 Implement password recovery flow
+  - [~] 4.3 Implement password recovery flow
     - Generate 128-bit token with 24-hour expiration
     - Send reset URL via MailKit with 3 retry attempts
     - Invalidate previous tokens on new request
@@ -143,7 +143,7 @@ This plan implements a comprehensive Point of Sale system in .NET 8 with Blazor 
     - **Validates: Requirements 2.5, 2.6, 5.1, 5.2, 5.5, 9.2, 11.1, 12.15, 13.11, 15.2, 16.2, 20.2**
 
 - [ ] 5. Implement category hierarchy and profit margins
-  - [ ] 5.1 Implement CategoryTreeService with closure table
+  - [~] 5.1 Implement CategoryTreeService with closure table
     - Implement category CRUD with name (1-100), parent, description, display order
     - Maintain `CategoryClosure` table transactionally on create/move/deactivate
     - Validate depth <= 5 on create and move
@@ -152,7 +152,7 @@ This plan implements a comprehensive Point of Sale system in .NET 8 with Blazor 
     - Enforce unique (parent_category_id, name) including root level
     - _Requirements: 14.1, 14.2, 14.3, 14.4, 14.5, 14.6, 14.7, 14.8, 14.9, 14.10, 14.11, 14.12, 14.13, 14.14, 14.15, 14.16, 14.17, 14.18_
 
-  - [ ] 5.2 Implement MarginService with hierarchical resolution
+  - [~] 5.2 Implement MarginService with hierarchical resolution
     - Implement effective margin resolution: product > nearest ancestor category > global (using closure table)
     - Calculate `SuggestedPrice = CostPrice × (1 + EffectiveMargin / 100)` with half-up rounding to 2 decimals
     - Support global margin CRUD (Admin only), category margin CRUD (Manager+), product margin CRUD (Manager+)
@@ -171,7 +171,7 @@ This plan implements a comprehensive Point of Sale system in .NET 8 with Blazor 
     - **Validates: Requirements 15.5, 15.6, 15.7, 15.8, 15.11**
 
 - [ ] 6. Implement inventory and product management
-  - [ ] 6.1 Implement InventoryService and product CRUD
+  - [~] 6.1 Implement InventoryService and product CRUD
     - Implement product creation with name, SKU, description, price, cost price, category, quantity, min stock threshold
     - Enforce SKU uniqueness across all products (including deactivated)
     - Implement product modification and soft deactivation
@@ -180,14 +180,14 @@ This plan implements a comprehensive Point of Sale system in .NET 8 with Blazor 
     - Reject transactions with deactivated products
     - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6, 10.7, 10.8, 10.9, 10.10_
 
-  - [ ] 6.2 Implement ProductSearchService
+  - [~] 6.2 Implement ProductSearchService
     - Implement barcode exact match search (< 1 second)
     - Implement SKU exact match search (< 1 second)
     - Implement product name partial match search (case/accent insensitive via collation, < 2 seconds, top 50)
     - Display "No products found" when zero matches, "Showing 50 of N" when > 50 matches
     - _Requirements: 18.6, 18.7, 18.8, 18.9, 18.10_
 
-  - [ ] 6.3 Implement barcode management
+  - [~] 6.3 Implement barcode management
     - Validate barcode format (EAN-13: 13 digits, UPC-A: 12 digits, Code 128: 1-48 printable ASCII)
     - Validate check digit for EAN-13 and UPC-A
     - Enforce barcode uniqueness across all products (including deactivated)
@@ -195,7 +195,7 @@ This plan implements a comprehensive Point of Sale system in .NET 8 with Blazor 
     - Record barcode changes in AuditLog
     - _Requirements: 18.1, 18.2, 18.3, 18.4, 18.5, 18.17, 18.18, 18.19_
 
-  - [ ] 6.4 Implement ProductImageService
+  - [~] 6.4 Implement ProductImageService
     - Validate file by magic bytes (JPEG, PNG, WebP), not extension
     - Enforce size (1-5,242,880 bytes) and dimensions (≤ 4000×4000 pixels)
     - Validate full image decode
@@ -209,11 +209,11 @@ This plan implements a comprehensive Point of Sale system in .NET 8 with Blazor 
     - Acceptance depends only on binary content and real dimensions; thumbnail is 200×200; rejection/failure preserves previous image; no orphan files
     - **Validates: Requirements 16.3, 16.4, 16.5, 16.6, 16.9, 16.10, 16.12, 16.13, 16.24**
 
-- [ ] 7. Checkpoint - Ensure all tests pass
+- [~] 7. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 8. Implement sales transactions and barcode scanning
-  - [ ] 8.1 Implement SalesService (transaction lifecycle)
+  - [~] 8.1 Implement SalesService (transaction lifecycle)
     - Implement `AddLineItemAsync`: validate product exists/active, check stock, enforce quantity 1-9999
     - Implement `AddByBarcodeAsync`: scan handling per design (new item qty=1, existing item qty+1)
     - Calculate subtotal, tax, discount, final amount with 2-decimal precision
@@ -224,7 +224,7 @@ This plan implements a comprehensive Point of Sale system in .NET 8 with Blazor 
     - Record shift_id, operating_day, and full transaction details in AuditLog
     - _Requirements: 9.1-9.22, 18.11-18.16_
 
-  - [ ] 8.2 Implement StoreCreditService
+  - [~] 8.2 Implement StoreCreditService
     - Implement voucher consumption: validate code exists, not used, not expired
     - Apply `min(voucher.amount, final_amount)` with 2-decimal precision
     - Handle partial store credit with additional payment method
@@ -233,7 +233,7 @@ This plan implements a comprehensive Point of Sale system in .NET 8 with Blazor 
     - Record store credit operations in AuditLog
     - _Requirements: 9.8, 9.9, 9.10, 9.11, 9.12, 9.13, 9.14, 9.15, 20.9_
 
-  - [ ] 8.3 Implement DiscountService
+  - [~] 8.3 Implement DiscountService
     - Implement line item discount (percentage 0-100 or fixed amount ≤ line amount)
     - Implement transaction total discount (percentage 0-100 or fixed amount ≤ subtotal)
     - Enforce `final_amount >= 0` after discounts
@@ -265,7 +265,7 @@ This plan implements a comprehensive Point of Sale system in .NET 8 with Blazor 
     - **Validates: Requirements 9.9, 9.10, 9.11, 9.12, 9.13, 9.14, 9.15, 20.9**
 
 - [ ] 9. Implement returns and voids
-  - [ ] 9.1 Implement ReturnService
+  - [~] 9.1 Implement ReturnService
     - Load returnable transaction (must exist, not older than 90 days, not voided)
     - Display original line items with available return quantities
     - Validate return quantity (1 to original qty minus already returned)
@@ -279,7 +279,7 @@ This plan implements a comprehensive Point of Sale system in .NET 8 with Blazor 
     - Record full return details in AuditLog
     - _Requirements: 11.1-11.16_
 
-  - [ ] 9.2 Implement VoidService
+  - [~] 9.2 Implement VoidService
     - Validate: same operating day, shift still open, not already voided, no existing returns
     - Require void reason and notes (1-500 chars)
     - Atomically restore inventory for all line items
@@ -300,7 +300,7 @@ This plan implements a comprehensive Point of Sale system in .NET 8 with Blazor 
     - **Validates: Requirements 19.10, 19.11, 19.12, 19.13, 11.10, 11.11**
 
 - [ ] 10. Implement cash shifts
-  - [ ] 10.1 Implement ShiftService
+  - [~] 10.1 Implement ShiftService
     - Implement shift opening: validate one shift per user, one per drawer; record cash count by denomination
     - Implement deposits and withdrawals with amount, reason, notes
     - Calculate expected cash balance: `opening + cash_sales(not voided) + deposits - withdrawals - cash_refunds - voided_cash_sales`
@@ -316,7 +316,7 @@ This plan implements a comprehensive Point of Sale system in .NET 8 with Blazor 
     - **Validates: Requirements 12.8, 12.10, 12.11, 12.13, 12.14, 9.19, 9.20, 11.9, 20.8**
 
 - [ ] 11. Implement customers
-  - [ ] 11.1 Implement CustomerService
+  - [~] 11.1 Implement CustomerService
     - Implement customer CRUD: name (1-100), email (unique, optional), phone (7-20, warn on duplicate), notes
     - Implement customer search: name (partial, CI/AI), email (exact), phone (partial), identifier
     - Link customers to transactions (optional)
@@ -325,11 +325,11 @@ This plan implements a comprehensive Point of Sale system in .NET 8 with Blazor 
     - Record customer operations in AuditLog
     - _Requirements: 13.1-13.14_
 
-- [ ] 12. Checkpoint - Ensure all tests pass
+- [~] 12. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 13. Implement receipts and printing
-  - [ ] 13.1 Implement ReceiptService and QuestPDF renderer
+  - [~] 13.1 Implement ReceiptService and QuestPDF renderer
     - Generate receipt content with all required fields (tx id, timestamp in business timezone, business info, user, customer, line items, totals, payment, change, store credit details)
     - Render for thermal printer (80mm width) via QuestPDF
     - Render as downloadable PDF (80mm page width)
@@ -340,7 +340,7 @@ This plan implements a comprehensive Point of Sale system in .NET 8 with Blazor 
     - Record receipt emissions and reprints in AuditLog
     - _Requirements: 17.1-17.17_
 
-  - [ ] 13.2 Implement EscPosPrinterGateway and email delivery
+  - [~] 13.2 Implement EscPosPrinterGateway and email delivery
     - POST to local agent (`localhost:9100/print`) with 5-second timeout
     - On failure: offer retry, PDF download, or continue without receipt (preserve transaction)
     - Implement email receipt delivery via MailKit with 3 retries
@@ -348,7 +348,7 @@ This plan implements a comprehensive Point of Sale system in .NET 8 with Blazor 
     - _Requirements: 17.3, 17.4, 17.5, 17.6, 17.12, 17.13_
 
 - [ ] 14. Implement reports and dashboard
-  - [ ] 14.1 Implement ReportEngine
+  - [~] 14.1 Implement ReportEngine
     - Accept parameters: date range (max 366 days), category IDs (with recursive child option), user IDs
     - Retrieve and filter transaction/audit data
     - Calculate summary statistics: total sales, transaction count, average value (2 decimal precision)
@@ -358,14 +358,14 @@ This plan implements a comprehensive Point of Sale system in .NET 8 with Blazor 
     - Handle empty results with "No data found" message
     - _Requirements: 7.1-7.6, 7.10, 15.22-15.25, 19.19, 19.20, 20.14_
 
-  - [ ] 14.2 Implement scheduled reports with Quartz.NET
+  - [~] 14.2 Implement scheduled reports with Quartz.NET
     - Implement `ReportSchedule` CRUD: frequency (daily/weekly/monthly), format (PDF/Excel), recipients (1-10 emails)
     - Implement `ScheduledReportJob` in Quartz.NET
     - Email report as attachment via MailKit with 3 retries
     - Log failure and notify user on delivery failure
     - _Requirements: 7.7, 7.8, 7.9_
 
-  - [ ] 14.3 Implement DashboardService and aggregates
+  - [~] 14.3 Implement DashboardService and aggregates
     - Implement dashboard configuration: add/remove/reorder widgets (max 8 per user)
     - Implement `DailySalesAggregate` maintenance (refresh job or on-demand)
     - Provide metrics: sales by day (30 days), top 10 products, sales by category
@@ -380,14 +380,14 @@ This plan implements a comprehensive Point of Sale system in .NET 8 with Blazor 
     - **Validates: Requirements 20.14, 20.15, 20.16, 7.6, 8.1, 8.4, 13.14, 15.24, 19.19**
 
 - [ ] 15. Implement audit query and operating day logic
-  - [ ] 15.1 Implement audit query endpoint
+  - [~] 15.1 Implement audit query endpoint
     - Retrieve up to 10,000 entries per query with filtering by date range (max 366 days), user, operation type
     - Indicate total count when results exceed 10,000
     - Return most recent entries first
     - Partition elimination on date range queries
     - _Requirements: 1.4, 1.5_
 
-  - [ ] 15.2 Implement OperatingDay derivation and Quartz background jobs
+  - [~] 15.2 Implement OperatingDay derivation and Quartz background jobs
     - Derive `operating_day` from UTC instant + configured business timezone
     - Persist at transaction/return/shift completion time (immutable after)
     - Implement `UnlockExpiredAccountsJob`, `ExpireVouchersJob`, `PurgeExpiredResetTokensJob`
@@ -405,11 +405,11 @@ This plan implements a comprehensive Point of Sale system in .NET 8 with Blazor 
     - For any UTC instant and timezone, operating_day equals date part of local conversion; immutable after persistence; void allowed iff same day and shift open
     - **Validates: Requirements 9.19, 20.1, 20.3, 1.1, 17.1**
 
-- [ ] 16. Checkpoint - Ensure all tests pass
+- [~] 16. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 17. Implement Blazor Server presentation layer
-  - [ ] 17.1 Create responsive layout and navigation
+  - [~] 17.1 Create responsive layout and navigation
     - Implement `MainLayout` with horizontal nav ≥768px, vertical stacked <768px
     - Implement `NavMenu` with role-based visibility
     - Ensure all interactive elements have 44×44px touch targets on mobile
@@ -418,7 +418,7 @@ This plan implements a comprehensive Point of Sale system in .NET 8 with Blazor 
     - Implement cookie-based authentication with `AuthorizationPolicies`
     - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7_
 
-  - [ ] 17.2 Create POS transaction page with barcode scanning
+  - [~] 17.2 Create POS transaction page with barcode scanning
     - Implement `BarcodeCaptureField` (focus-permanent field interpreting HID scanner bursts ending with Enter)
     - Implement product search panel (barcode, SKU, name)
     - Implement cart display with line items, quantities, prices, discounts
@@ -428,7 +428,7 @@ This plan implements a comprehensive Point of Sale system in .NET 8 with Blazor 
     - Implement receipt output selection (print, PDF, email, continue without)
     - _Requirements: 9.1-9.22, 18.11-18.16, 19.1-19.18_
 
-  - [ ] 17.3 Create inventory, category, and product pages
+  - [~] 17.3 Create inventory, category, and product pages
     - Implement product list with `ProductThumbnail` (200×200 desktop, 80×80 mobile), low stock indicators, loss indicators
     - Implement product create/edit forms with margin display, suggested price, manual override confirmation
     - Implement category tree browser with expandable hierarchy ordered by display order
@@ -436,7 +436,7 @@ This plan implements a comprehensive Point of Sale system in .NET 8 with Blazor 
     - Implement barcode assignment and generation UI
     - _Requirements: 10.1-10.10, 14.1-14.18, 15.9-15.21, 16.1-16.25, 18.1-18.5, 18.17_
 
-  - [ ] 17.4 Create shifts, returns, voids, and customer pages
+  - [~] 17.4 Create shifts, returns, voids, and customer pages
     - Implement `ShiftCashCountForm` with denomination breakdown and calculated total
     - Implement shift open/close flow with variance display and notes requirement
     - Implement return flow: transaction lookup, line selection, refund method, authorization
@@ -444,7 +444,7 @@ This plan implements a comprehensive Point of Sale system in .NET 8 with Blazor 
     - Implement customer CRUD, search, purchase history, lifetime statistics
     - _Requirements: 11.1-11.16, 12.1-12.15, 13.1-13.14, 20.1-20.19_
 
-  - [ ] 17.5 Create dashboard and reports pages
+  - [~] 17.5 Create dashboard and reports pages
     - Implement `ChartWidget` with ApexCharts.Blazor (line, bar, pie, numeric indicator)
     - Implement drag-and-drop widget configuration (max 8)
     - Implement tooltip with 2-decimal currency / 0-decimal quantities
@@ -453,13 +453,13 @@ This plan implements a comprehensive Point of Sale system in .NET 8 with Blazor 
     - Implement scheduled report management
     - _Requirements: 7.1-7.10, 8.1-8.10_
 
-  - [ ] 17.6 Create admin pages (users, system configuration, audit viewer)
+  - [~] 17.6 Create admin pages (users, system configuration, audit viewer)
     - Implement user management CRUD with role assignment
     - Implement system configuration: tax rate, currency, business name/address, timezone, global margin, cashier discount limit, receipt footer text
     - Implement audit log viewer with filters (date range, user, operation type) and pagination
     - _Requirements: 2.1-2.8, 5.1-5.8, 1.4, 1.5_
 
-  - [ ] 17.7 Implement ErrorMessageLocalizer and error display
+  - [~] 17.7 Implement ErrorMessageLocalizer and error display
     - Create `Errors.en-US.resx` with exact literal messages from requirements
     - Create `Errors.es-AR.resx` with Spanish translations using same placeholders
     - Implement `ErrorAlert` component with `aria-live="assertive"`
@@ -468,7 +468,7 @@ This plan implements a comprehensive Point of Sale system in .NET 8 with Blazor 
     - _Requirements: All error messages across all requirements_
 
 - [ ] 18. Implement test infrastructure and remaining property tests
-  - [ ] 18.1 Set up PosTestDb with Testcontainers
+  - [~] 18.1 Set up PosTestDb with Testcontainers
     - Create `PosTestDb` helper class using `Testcontainers.MsSql` with `mcr.microsoft.com/mssql/server:2022-latest`
     - Apply migrations, create `pos_owner` and `pos_app` principals
     - Configure `READ_COMMITTED_SNAPSHOT ON`
@@ -491,7 +491,7 @@ This plan implements a comprehensive Point of Sale system in .NET 8 with Blazor 
     - Verify dependency rule (Domain has no external references)
     - _Requirements: 9.3, 20.1, security_
 
-- [ ] 19. Final checkpoint - Ensure all tests pass
+- [~] 19. Final checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes
