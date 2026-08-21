@@ -24,7 +24,7 @@ This plan implements a comprehensive Point of Sale system in .NET 8 with Blazor 
     - Create `IClock` interface (`DateTimeOffset UtcNow`) for time abstraction
     - _Requirements: 9.3, 15.11, 18.2, 18.3, 12.1, 1.1_
 
-  - [ ] 1.3 Implement domain entities and aggregates
+  - [x] 1.3 Implement domain entities and aggregates
     - Create `User`, `Role`, `UserRole` entities with validation rules
     - Create `Session`, `PasswordResetToken` entities
     - Create `Category` entity with depth constraint (1-5) and parent reference
