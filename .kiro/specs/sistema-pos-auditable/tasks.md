@@ -209,10 +209,10 @@ This plan implements a comprehensive Point of Sale system in .NET 8 with Blazor 
     - Acceptance depends only on binary content and real dimensions; thumbnail is 200×200; rejection/failure preserves previous image; no orphan files
     - **Validates: Requirements 16.3, 16.4, 16.5, 16.6, 16.9, 16.10, 16.12, 16.13, 16.24**
 
-- [~] 7. Checkpoint - Ensure all tests pass
+- [x] 7. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 8. Implement sales transactions and barcode scanning
+- [x] 8. Implement sales transactions and barcode scanning
   - [~] 8.1 Implement SalesService (transaction lifecycle)
     - Implement `AddLineItemAsync`: validate product exists/active, check stock, enforce quantity 1-9999
     - Implement `AddByBarcodeAsync`: scan handling per design (new item qty=1, existing item qty+1)
