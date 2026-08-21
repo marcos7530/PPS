@@ -102,7 +102,7 @@ This plan implements a comprehensive Point of Sale system in .NET 8 with Blazor 
     - Verify username, user email, customer email, SKU, barcode, (parent, category name) uniqueness including deactivated entities, with case variations
     - **Validates: Requirements 2.2, 10.8, 10.9, 13.2, 14.2, 18.4, 18.5, 18.18**
 
-- [~] 3. Checkpoint - Ensure all tests pass
+- [x] 3. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 4. Implement authentication, users, and roles
