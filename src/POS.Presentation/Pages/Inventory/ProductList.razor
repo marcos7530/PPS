@@ -1,0 +1,199 @@
+@page "/inventory"
+@using POS.Application.Services
+@using POS.Application.Interfaces.Repositories
+@using POS.Domain.Entities
+@attribute [Authorize(Policy = AuthorizationPolicies.RequireViewer)]
+
+<h2>Inventario</h2>
+
+@* Search and filter bar *@
+<div class="inventory-toolbar">
+    <div class="inventory-toolbar__search">
+        <input type="text"
+               class="form-input"
+               placeholder="Buscar por nombre o SKU..."
+               @bind="_searchTerm"
+               @bind:event="oninput"
+               @onkeyup="OnSearchKeyUp"
+               aria-label="Buscar productos" />
+        <button class="btn btn--secondary" @onclick="SearchProducts" aria-label="Buscar">
+            Buscar
+        </button>
+    </div>
+
+    <div class="inventory-toolbar__filters">
+        <label class="checkbox-label">
+            <input type="checkbox" @bind="_showLowStockOnly" @bind:event="onchange" @bind:after="ApplyFilters" />
+            Solo stock bajo
+        </label>
+        <label class="checkbox-label">
+            <input type="checkbox" @bind="_showDeactivated" @bind:event="onchange" @bind:after="ApplyFilters" />
+            Mostrar desactivados
+        </label>
+    </div>
+
+    <AuthorizeView Policy="@AuthorizationPolicies.RequireManager">
+        <Authorized>
+            <a href="/inventory/create" class="btn btn--primary">
+                + Nuevo Producto
+            </a>
+        </Authorized>
+    </AuthorizeView>
+</div>
+
+@* Product list *@
+@if (_loading)
+{
+    <p class="text-muted">Cargando productos...</p>
+}
+else if (_error is not null)
+{
+    <ErrorAlert Message="@_error" />
+}
+else
+{
+    <ResponsiveTable TItem="Product"
+                     Items="_filteredProducts"
+                     Columns="_columns"
+                     AriaLabel="Lista de productos"
+                     EmptyMessage="No se encontraron productos." />
+}
+
+@code {
+    [Inject] private IProductRepository ProductRepository { get; set; } = null!;
+    [Inject] private NavigationManager Navigation { get; set; } = null!;
+
+    private IReadOnlyList<Product> _allProducts = Array.Empty<Product>();
+    private IEnumerable<Product> _filteredProducts = Enumerable.Empty<Product>();
+    private IReadOnlyList<TableColumn<Product>> _columns = Array.Empty<TableColumn<Product>>();
+
+    private string _searchTerm = string.Empty;
+    private bool _showLowStockOnly;
+    private bool _showDeactivated;
+    private bool _loading = true;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _allProducts = await ProductRepository.GetAllAsync();
+            ApplyFilters();
+            BuildColumns();
+        }
+        catch (Exception ex)
+        {
+            _error = $"Error al cargar productos: {ex.Message}";
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void BuildColumns()
+    {
+        _columns = new List<TableColumn<Product>>
+        {
+            new TableColumn<Product>("Imagen", product => builder =>
+            {
+                builder.OpenComponent<ProductThumbnail>(0);
+                builder.AddAttribute(1, nameof(ProductThumbnail.ImageUrl), product.Image?.ThumbnailPath);
+                builder.AddAttribute(2, nameof(ProductThumbnail.Alt), product.Name);
+                builder.AddAttribute(3, nameof(ProductThumbnail.LargeSize), false);
+                builder.CloseComponent();
+            }),
+            TableColumnFactory.Text<Product>("Nombre", p => p.Name),
+            TableColumnFactory.Text<Product>("SKU", p => p.Sku),
+            new TableColumn<Product>("Precio", p => builder =>
+            {
+                builder.OpenComponent<MoneyDisplay>(0);
+                builder.AddAttribute(1, nameof(MoneyDisplay.Amount), p.SalePrice);
+                builder.CloseComponent();
+            }),
+            new TableColumn<Product>("Stock", p => builder =>
+            {
+                builder.OpenElement(0, "span");
+                builder.AddAttribute(1, "class", GetStockClass(p));
+                builder.AddContent(2, p.Quantity.ToString());
+                if (p.IsLowStock)
+                {
+                    builder.OpenElement(3, "span");
+                    builder.AddAttribute(4, "class", "badge badge--warning");
+                    builder.AddAttribute(5, "title", "Stock bajo");
+                    builder.AddContent(6, " Bajo");
+                    builder.CloseElement();
+                }
+                builder.CloseElement();
+            }),
+            new TableColumn<Product>("Estado", p => builder =>
+            {
+                if (p.IsDeactivated)
+                {
+                    builder.OpenElement(0, "span");
+                    builder.AddAttribute(1, "class", "badge badge--danger");
+                    builder.AddContent(2, "Desactivado");
+                    builder.CloseElement();
+                }
+                else if (p.Quantity == 0)
+                {
+                    builder.OpenElement(0, "span");
+                    builder.AddAttribute(1, "class", "badge badge--danger");
+                    builder.AddAttribute(2, "title", "Indicador de pérdida potencial");
+                    builder.AddContent(3, "Sin stock");
+                    builder.CloseElement();
+                }
+                else
+                {
+                    builder.OpenElement(0, "span");
+                    builder.AddAttribute(1, "class", "badge badge--success");
+                    builder.AddContent(2, "Activo");
+                    builder.CloseElement();
+                }
+            }),
+            new TableColumn<Product>("Acciones", p => builder =>
+            {
+                builder.OpenElement(0, "a");
+                builder.AddAttribute(1, "href", $"/inventory/{p.Id}");
+                builder.AddAttribute(2, "class", "btn btn--small btn--secondary");
+                builder.AddContent(3, "Editar");
+                builder.CloseElement();
+            })
+        };
+    }
+
+    private void ApplyFilters()
+    {
+        var filtered = _allProducts.AsEnumerable();
+
+        if (!_showDeactivated)
+            filtered = filtered.Where(p => !p.IsDeactivated);
+
+        if (_showLowStockOnly)
+            filtered = filtered.Where(p => p.IsLowStock);
+
+        if (!string.IsNullOrWhiteSpace(_searchTerm))
+        {
+            var term = _searchTerm.Trim();
+            filtered = filtered.Where(p =>
+                p.Name.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                p.Sku.Contains(term, StringComparison.OrdinalIgnoreCase));
+        }
+
+        _filteredProducts = filtered.ToList();
+    }
+
+    private void SearchProducts()
+    {
+        ApplyFilters();
+    }
+
+    private void OnSearchKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+            ApplyFilters();
+    }
+
+    private static string GetStockClass(Product p) =>
+        p.IsLowStock ? "text-warning" : "text-normal";
+}

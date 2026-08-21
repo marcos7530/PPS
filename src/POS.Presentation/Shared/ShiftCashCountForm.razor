@@ -1,0 +1,142 @@
+@*
+    ShiftCashCountForm — Denomination breakdown for cash counting (Req 12.1, 12.9-12.12).
+    Renders one row per denomination, auto-calculates subtotals and total.
+    Parameters:
+      - OnCountSubmitted: EventCallback<Dictionary<decimal, int>> invoked with denomination counts
+      - Disabled: whether the form is read-only
+*@
+
+<div class="cash-count-form">
+    <h4 class="cash-count-form__title">Conteo de Efectivo</h4>
+
+    <div class="cash-count-form__grid" role="table" aria-label="Denomination breakdown">
+        <div class="cash-count-form__header" role="row">
+            <span role="columnheader">Denominación</span>
+            <span role="columnheader">Cantidad</span>
+            <span role="columnheader">Subtotal</span>
+        </div>
+
+        @foreach (var denom in _denominations)
+        {
+            <div class="cash-count-form__row" role="row">
+                <span class="cash-count-form__denom" role="cell">
+                    <MoneyDisplay Amount="@denom" />
+                </span>
+                <span class="cash-count-form__qty" role="cell">
+                    <input type="number"
+                           min="0"
+                           max="9999"
+                           step="1"
+                           class="cash-count-form__input"
+                           value="@GetQuantity(denom)"
+                           @onchange="e => OnQuantityChanged(denom, e)"
+                           disabled="@Disabled"
+                           aria-label="@($"Cantidad de billetes/monedas de {denom:F2}")" />
+                </span>
+                <span class="cash-count-form__subtotal" role="cell">
+                    <MoneyDisplay Amount="@(denom * GetQuantity(denom))" />
+                </span>
+            </div>
+        }
+
+        <div class="cash-count-form__total" role="row">
+            <span role="cell"><strong>Total</strong></span>
+            <span role="cell"></span>
+            <span role="cell">
+                <strong><MoneyDisplay Amount="@CalculatedTotal" /></strong>
+            </span>
+        </div>
+    </div>
+
+    @if (!Disabled)
+    {
+        <button type="button"
+                class="btn btn-primary cash-count-form__submit"
+                @onclick="Submit"
+                disabled="@(CalculatedTotal <= 0 && !AllowZero)">
+            @ButtonText
+        </button>
+    }
+</div>
+
+@code {
+    private static readonly decimal[] _denominations =
+    {
+        100.00m, 50.00m, 20.00m, 10.00m, 5.00m, 1.00m, 0.25m, 0.10m, 0.05m, 0.01m
+    };
+
+    private readonly Dictionary<decimal, int> _counts = new();
+
+    /// <summary>
+    /// Callback invoked when the user submits the denomination count.
+    /// </summary>
+    [Parameter]
+    public EventCallback<Dictionary<decimal, int>> OnCountSubmitted { get; set; }
+
+    /// <summary>
+    /// Whether the form inputs are disabled (read-only display mode).
+    /// </summary>
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    /// <summary>
+    /// Whether to allow submitting with a zero total (e.g., opening with no cash).
+    /// </summary>
+    [Parameter]
+    public bool AllowZero { get; set; }
+
+    /// <summary>
+    /// Text for the submit button. Defaults to "Confirmar conteo".
+    /// </summary>
+    [Parameter]
+    public string ButtonText { get; set; } = "Confirmar conteo";
+
+    /// <summary>
+    /// Pre-populated denomination counts (for displaying an existing count).
+    /// </summary>
+    [Parameter]
+    public Dictionary<decimal, int>? InitialCounts { get; set; }
+
+    /// <summary>
+    /// The computed total from all denomination quantities.
+    /// </summary>
+    public decimal CalculatedTotal => _counts.Sum(kv => kv.Key * kv.Value);
+
+    protected override void OnParametersSet()
+    {
+        if (InitialCounts is not null && _counts.Count == 0)
+        {
+            foreach (var kv in InitialCounts)
+            {
+                _counts[kv.Key] = kv.Value;
+            }
+        }
+    }
+
+    private int GetQuantity(decimal denomination)
+    {
+        return _counts.TryGetValue(denomination, out var qty) ? qty : 0;
+    }
+
+    private void OnQuantityChanged(decimal denomination, ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var qty) && qty >= 0 && qty <= 9999)
+        {
+            _counts[denomination] = qty;
+        }
+        else
+        {
+            _counts[denomination] = 0;
+        }
+    }
+
+    private async Task Submit()
+    {
+        var result = new Dictionary<decimal, int>();
+        foreach (var denom in _denominations)
+        {
+            result[denom] = GetQuantity(denom);
+        }
+        await OnCountSubmitted.InvokeAsync(result);
+    }
+}

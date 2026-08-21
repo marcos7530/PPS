@@ -1,3 +1,48 @@
 ﻿@inherits LayoutComponentBase
 
-<main> @Body </main>
+<CascadingAuthenticationState>
+    <div class="layout">
+        @* Mobile top bar with hamburger *@
+        <header class="mobile-topbar">
+            <button class="nav-toggle"
+                    @onclick="ToggleNav"
+                    aria-label="Toggle navigation menu"
+                    aria-expanded="@_navOpen">
+                <span class="nav-toggle__icon"></span>
+            </button>
+            <span class="mobile-topbar__title">POS</span>
+        </header>
+
+        @* Overlay for mobile nav *@
+        <div class="nav-overlay @(_navOpen ? "nav-overlay--visible" : "")"
+             @onclick="CloseNav"></div>
+
+        @* Sidebar navigation *@
+        <nav class="layout__nav @(_navOpen ? "layout__nav--open" : "")"
+             aria-label="Main navigation">
+            <div class="nav-header">
+                <h1 class="nav-header__title">POS System</h1>
+            </div>
+            <NavMenu OnNavigated="CloseNav" />
+        </nav>
+
+        @* Main content *@
+        <main class="layout__content">
+            @Body
+        </main>
+    </div>
+</CascadingAuthenticationState>
+
+@code {
+    private bool _navOpen;
+
+    private void ToggleNav()
+    {
+        _navOpen = !_navOpen;
+    }
+
+    private void CloseNav()
+    {
+        _navOpen = false;
+    }
+}

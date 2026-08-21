@@ -1,0 +1,168 @@
+@using POS.Application.DTOs
+@using POS.Application.Interfaces.Services
+@using POS.Domain.Common
+
+@inject IReceiptService ReceiptService
+
+@if (IsVisible)
+{
+    <div class="modal-overlay" aria-modal="true" role="dialog" aria-labelledby="receipt-dialog-title">
+        <div class="modal-dialog" @onclick:stopPropagation="true">
+            <header class="modal-dialog__header">
+                <h2 id="receipt-dialog-title">Comprobante</h2>
+            </header>
+
+            <div class="modal-dialog__body">
+                @if (_state == DialogState.Choosing)
+                {
+                    <p class="modal-dialog__description">Seleccione cómo desea recibir el comprobante:</p>
+
+                    <div class="receipt-options">
+                        <button type="button" class="receipt-option" @onclick="() => EmitReceipt(ReceiptChannel.ThermalPrinter)">
+                            <span class="receipt-option__icon" aria-hidden="true">&#x1F5A8;</span>
+                            <span class="receipt-option__label">Imprimir</span>
+                        </button>
+
+                        <button type="button" class="receipt-option" @onclick="() => EmitReceipt(ReceiptChannel.Pdf)">
+                            <span class="receipt-option__icon" aria-hidden="true">&#x1F4C4;</span>
+                            <span class="receipt-option__label">Descargar PDF</span>
+                        </button>
+
+                        <button type="button"
+                                class="receipt-option"
+                                @onclick="() => EmitReceipt(ReceiptChannel.Email)"
+                                disabled="@(!HasCustomerEmail)">
+                            <span class="receipt-option__icon" aria-hidden="true">&#x2709;</span>
+                            <span class="receipt-option__label">Enviar por Email</span>
+                            @if (!HasCustomerEmail)
+                            {
+                                <span class="receipt-option__note">Cliente sin email</span>
+                            }
+                        </button>
+
+                        <button type="button" class="receipt-option receipt-option--skip" @onclick="SkipReceipt">
+                            <span class="receipt-option__icon" aria-hidden="true">&#x27A1;</span>
+                            <span class="receipt-option__label">Continuar sin comprobante</span>
+                        </button>
+                    </div>
+                }
+                else if (_state == DialogState.Processing)
+                {
+                    <div class="receipt-processing" aria-live="polite">
+                        <p>Emitiendo comprobante...</p>
+                    </div>
+                }
+                else if (_state == DialogState.PrintFailed)
+                {
+                    <div class="receipt-error" role="alert" aria-live="assertive">
+                        <p>No se pudo imprimir el comprobante.</p>
+                        <p class="receipt-error__detail">@_errorMessage</p>
+                    </div>
+
+                    <div class="receipt-options">
+                        <button type="button" class="receipt-option" @onclick="() => EmitReceipt(ReceiptChannel.ThermalPrinter)">
+                            <span class="receipt-option__label">Reintentar impresión</span>
+                        </button>
+
+                        <button type="button" class="receipt-option" @onclick="() => EmitReceipt(ReceiptChannel.Pdf)">
+                            <span class="receipt-option__label">Descargar PDF</span>
+                        </button>
+
+                        <button type="button" class="receipt-option receipt-option--skip" @onclick="SkipReceipt">
+                            <span class="receipt-option__label">Continuar sin comprobante</span>
+                        </button>
+                    </div>
+                }
+                else if (_state == DialogState.Success)
+                {
+                    <div class="receipt-success" aria-live="polite">
+                        <p>Comprobante emitido correctamente.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private enum DialogState { Choosing, Processing, PrintFailed, Success }
+    private DialogState _state = DialogState.Choosing;
+    private string? _errorMessage;
+
+    /// <summary>
+    /// Controls visibility.
+    /// </summary>
+    [Parameter]
+    public bool IsVisible { get; set; }
+
+    /// <summary>
+    /// The transaction ID to emit the receipt for.
+    /// </summary>
+    [Parameter]
+    public Guid TransactionId { get; set; }
+
+    /// <summary>
+    /// Whether the linked customer has an email address (for email option).
+    /// </summary>
+    [Parameter]
+    public bool HasCustomerEmail { get; set; }
+
+    /// <summary>
+    /// Callback when the dialog is done (receipt emitted or skipped).
+    /// </summary>
+    [Parameter]
+    public EventCallback OnCompleted { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        if (IsVisible)
+        {
+            _state = DialogState.Choosing;
+            _errorMessage = null;
+        }
+    }
+
+    private async Task EmitReceipt(ReceiptChannel channel)
+    {
+        _state = DialogState.Processing;
+        _errorMessage = null;
+
+        var source = new ReceiptSource(TransactionId, ReceiptSourceType.Transaction);
+        var result = await ReceiptService.EmitAsync(source, channel, CancellationToken.None);
+
+        if (result.IsSuccess)
+        {
+            _state = DialogState.Success;
+            // Auto-close after short delay
+            await Task.Delay(1500);
+            await OnCompleted.InvokeAsync();
+        }
+        else
+        {
+            if (channel == ReceiptChannel.ThermalPrinter)
+            {
+                _state = DialogState.PrintFailed;
+                _errorMessage = result.Error?.Code switch
+                {
+                    ErrorCode.ReceiptPrintFailed => "La impresora no responde o no está conectada.",
+                    _ => "Error al imprimir."
+                };
+            }
+            else
+            {
+                _errorMessage = result.Error?.Code switch
+                {
+                    ErrorCode.NoCustomerEmailAvailable => "El cliente no tiene email registrado.",
+                    ErrorCode.ReceiptEmailSendFailed => "No se pudo enviar el email.",
+                    _ => "Error al emitir el comprobante."
+                };
+                _state = DialogState.Choosing;
+            }
+        }
+    }
+
+    private async Task SkipReceipt()
+    {
+        await OnCompleted.InvokeAsync();
+    }
+}

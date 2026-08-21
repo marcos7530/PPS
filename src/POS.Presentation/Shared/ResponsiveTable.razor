@@ -1,0 +1,93 @@
+@typeparam TItem
+
+@* 
+    ResponsiveTable<T> — Renders as table on desktop (>=768px) and cards on mobile (<768px).
+    Uses CSS classes for responsive switching (no JS needed).
+    Requirements: 6.4, 6.6
+*@
+
+<div class="responsive-table">
+    @* Desktop: standard HTML table *@
+    <table class="responsive-table__desktop" aria-label="@AriaLabel">
+        <thead>
+            <tr>
+                @foreach (var col in Columns)
+                {
+                    <th scope="col">@col.Header</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @if (Items is not null)
+            {
+                @foreach (var item in Items)
+                {
+                    <tr>
+                        @foreach (var col in Columns)
+                        {
+                            <td>@col.CellTemplate(item)</td>
+                        }
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+
+    @* Mobile: card layout with scroll indicator *@
+    <div class="responsive-table__mobile responsive-table__scroll-wrapper" role="list" aria-label="@AriaLabel">
+        @if (Items is not null)
+        {
+            @foreach (var item in Items)
+            {
+                <div class="responsive-table__card" role="listitem">
+                    @foreach (var col in Columns)
+                    {
+                        <div class="responsive-table__card-field">
+                            <span class="responsive-table__card-label">@col.Header</span>
+                            <span class="responsive-table__card-value">@col.CellTemplate(item)</span>
+                        </div>
+                    }
+                </div>
+            }
+        }
+
+        @if (Items is null || !Items.Any())
+        {
+            <p class="text-muted text-center p-2">@EmptyMessage</p>
+        }
+    </div>
+
+    @* Empty state for desktop table *@
+    @if (Items is null || !Items.Any())
+    {
+        <p class="responsive-table__desktop text-muted text-center p-2" style="display: table-caption;">
+            @EmptyMessage
+        </p>
+    }
+</div>
+
+@code {
+    /// <summary>
+    /// The data items to render.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public IEnumerable<TItem>? Items { get; set; }
+
+    /// <summary>
+    /// Column definitions: header text and cell render function.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public IReadOnlyList<TableColumn<TItem>> Columns { get; set; } = Array.Empty<TableColumn<TItem>>();
+
+    /// <summary>
+    /// Accessible label for the table.
+    /// </summary>
+    [Parameter]
+    public string AriaLabel { get; set; } = "Data table";
+
+    /// <summary>
+    /// Message displayed when there are no items.
+    /// </summary>
+    [Parameter]
+    public string EmptyMessage { get; set; } = "No hay datos disponibles.";
+}

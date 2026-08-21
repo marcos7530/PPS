@@ -1,0 +1,121 @@
+@page "/users"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using POS.Application.Services
+@using POS.Domain.Entities
+@attribute [Authorize(Policy = AuthorizationPolicies.RequireAdministrator)]
+
+<h1>Gestión de Usuarios</h1>
+
+<div class="admin-toolbar">
+    <a href="/users/create" class="btn btn-primary">Crear Usuario</a>
+</div>
+
+@if (_error is not null)
+{
+    <ErrorAlert Message="@_error" OnDismissed="() => _error = null" />
+}
+
+@if (_loading)
+{
+    <p>Cargando usuarios...</p>
+}
+else
+{
+    <ResponsiveTable TItem="User" Items="_users" Columns="_columns" AriaLabel="Lista de usuarios" EmptyMessage="No hay usuarios registrados." />
+}
+
+@code {
+    [Inject] private UserService UserService { get; set; } = null!;
+    [Inject] private NavigationManager Navigation { get; set; } = null!;
+    [CascadingParameter] private Task<AuthenticationState> AuthStateTask { get; set; } = null!;
+
+    private IReadOnlyList<User> _users = Array.Empty<User>();
+    private bool _loading = true;
+    private string? _error;
+
+    private IReadOnlyList<TableColumn<User>> _columns = null!;
+
+    protected override void OnInitialized()
+    {
+        _columns = new List<TableColumn<User>>
+        {
+            TableColumnFactory.Text<User>("Usuario", u => u.Username),
+            TableColumnFactory.Text<User>("Email", u => u.Email),
+            TableColumnFactory.Text<User>("Nombre", u => u.FullName),
+            TableColumnFactory.Text<User>("Roles", u => string.Join(", ", u.UserRoles.Select(ur => ur.Role?.Name ?? ""))),
+            TableColumnFactory.Text<User>("Estado", u => u.IsActive ? "Activo" : "Inactivo"),
+            new TableColumn<User>("Acciones", u => builder =>
+            {
+                builder.OpenElement(0, "div");
+                builder.AddAttribute(1, "class", "admin-actions");
+
+                // Edit button
+                builder.OpenElement(2, "a");
+                builder.AddAttribute(3, "href", $"/users/{u.Id}");
+                builder.AddAttribute(4, "class", "btn btn-sm btn-secondary");
+                builder.AddContent(5, "Editar");
+                builder.CloseElement();
+
+                // Deactivate button (only for active users)
+                if (u.IsActive)
+                {
+                    builder.OpenElement(6, "button");
+                    builder.AddAttribute(7, "class", "btn btn-sm btn-danger");
+                    builder.AddAttribute(8, "onclick", EventCallback.Factory.Create(this, () => DeactivateUser(u.Id)));
+                    builder.AddContent(9, "Desactivar");
+                    builder.CloseElement();
+                }
+
+                builder.CloseElement();
+            })
+        };
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUsersAsync();
+    }
+
+    private async Task LoadUsersAsync()
+    {
+        _loading = true;
+        var result = await UserService.GetUsersAsync();
+        if (result.IsSuccess)
+        {
+            _users = result.Value!;
+        }
+        else
+        {
+            _error = "Error al cargar usuarios.";
+        }
+        _loading = false;
+    }
+
+    private async Task DeactivateUser(Guid userId)
+    {
+        var authState = await AuthStateTask;
+        var performedBy = GetCurrentUserId(authState);
+        if (performedBy == Guid.Empty) return;
+
+        var result = await UserService.DeactivateUserAsync(userId, performedBy);
+        if (result.IsSuccess)
+        {
+            await LoadUsersAsync();
+        }
+        else
+        {
+            _error = result.Error?.Code switch
+            {
+                Domain.Common.ErrorCode.LastAdministratorRequired => "No se puede desactivar al último administrador.",
+                _ => "Error al desactivar el usuario."
+            };
+        }
+    }
+
+    private static Guid GetCurrentUserId(AuthenticationState authState)
+    {
+        var claim = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+        return claim is not null && Guid.TryParse(claim.Value, out var id) ? id : Guid.Empty;
+    }
+}

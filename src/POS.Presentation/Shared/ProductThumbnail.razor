@@ -1,0 +1,50 @@
+@*
+    ProductThumbnail — Shows a product image or a placeholder fallback.
+    Supports responsive sizing: 200×200 on desktop, 80×80 on mobile.
+    Requirements: 16.1, 16.25
+*@
+
+<div class="product-thumbnail @SizeClass">
+    @if (!string.IsNullOrEmpty(ImageUrl))
+    {
+        <img src="@ImageUrl"
+             alt="@Alt"
+             class="product-thumbnail__img"
+             loading="lazy" />
+    }
+    else
+    {
+        <div class="product-thumbnail__placeholder" aria-label="@Alt">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <circle cx="8.5" cy="8.5" r="1.5" />
+                <polyline points="21 15 16 10 5 21" />
+            </svg>
+        </div>
+    }
+</div>
+
+@code {
+    /// <summary>
+    /// URL of the product image. If null or empty, displays placeholder.
+    /// </summary>
+    [Parameter]
+    public string? ImageUrl { get; set; }
+
+    /// <summary>
+    /// Alt text for accessibility.
+    /// </summary>
+    [Parameter]
+    public string Alt { get; set; } = "Imagen del producto";
+
+    /// <summary>
+    /// Whether to use the large (desktop) or small (mobile) size.
+    /// True = 200×200, False = 80×80.
+    /// </summary>
+    [Parameter]
+    public bool LargeSize { get; set; } = true;
+
+    private string SizeClass => LargeSize
+        ? "product-thumbnail--large"
+        : "product-thumbnail--small";
+}

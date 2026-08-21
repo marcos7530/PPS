@@ -1,0 +1,158 @@
+@using ApexCharts
+@using POS.Application.DTOs
+
+<div class="chart-widget">
+    @if (_loading)
+    {
+        <div class="chart-widget__loading">
+            <span>Cargando...</span>
+        </div>
+    }
+    else if (!string.IsNullOrEmpty(_errorMessage))
+    {
+        <div class="chart-widget__error">
+            <span>@_errorMessage</span>
+        </div>
+    }
+    else if (!_hasData)
+    {
+        <div class="chart-widget__empty">
+            <span>No hay datos disponibles para el rango seleccionado</span>
+        </div>
+    }
+    else
+    {
+        @switch (WidgetType)
+        {
+            case WidgetConfig.Types.DailySalesLine:
+                <ApexChart TItem="DayMetric"
+                           Title="Ventas Diarias"
+                           Options="_lineOptions">
+                    <ApexPointSeries TItem="DayMetric"
+                                     Items="SalesByDay"
+                                     SeriesType="SeriesType.Line"
+                                     Name="Ventas"
+                                     XValue="@(m => m.Day.ToString("dd/MM"))"
+                                     YValue="@(m => m.Amount)" />
+                </ApexChart>
+                break;
+
+            case WidgetConfig.Types.TopProductsBar:
+                <ApexChart TItem="ProductMetric"
+                           Title="Top 10 Productos"
+                           Options="_barOptions">
+                    <ApexPointSeries TItem="ProductMetric"
+                                     Items="TopProducts"
+                                     SeriesType="SeriesType.Bar"
+                                     Name="Cantidad"
+                                     XValue="@(m => m.ProductName)"
+                                     YValue="@(m => (decimal)m.QuantitySold)" />
+                </ApexChart>
+                break;
+
+            case WidgetConfig.Types.SalesByCategoryPie:
+                <ApexChart TItem="CategoryMetric"
+                           Title="Ventas por Categoría"
+                           Options="_pieOptions">
+                    <ApexPointSeries TItem="CategoryMetric"
+                                     Items="SalesByCategory"
+                                     SeriesType="SeriesType.Donut"
+                                     Name="Ventas"
+                                     XValue="@(m => m.CategoryName)"
+                                     YValue="@(m => m.TotalSales)" />
+                </ApexChart>
+                break;
+
+            case WidgetConfig.Types.TotalSalesNumeric:
+                <div class="chart-widget__numeric">
+                    <span class="chart-widget__numeric-label">Total Ventas</span>
+                    <span class="chart-widget__numeric-value">@TotalSales.ToString("N2")</span>
+                    <span class="chart-widget__numeric-count">@TransactionCount transacciones</span>
+                </div>
+                break;
+        }
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public string WidgetType { get; set; } = string.Empty;
+
+    [Parameter]
+    public IReadOnlyList<DayMetric>? SalesByDay { get; set; }
+
+    [Parameter]
+    public IReadOnlyList<ProductMetric>? TopProducts { get; set; }
+
+    [Parameter]
+    public IReadOnlyList<CategoryMetric>? SalesByCategory { get; set; }
+
+    [Parameter]
+    public decimal TotalSales { get; set; }
+
+    [Parameter]
+    public int TransactionCount { get; set; }
+
+    [Parameter]
+    public bool IsLoading { get; set; }
+
+    [Parameter]
+    public string? ErrorMessage { get; set; }
+
+    [Parameter]
+    public bool HasData { get; set; } = true;
+
+    private bool _loading;
+    private string? _errorMessage;
+    private bool _hasData;
+
+    private ApexChartOptions<DayMetric> _lineOptions = default!;
+    private ApexChartOptions<ProductMetric> _barOptions = default!;
+    private ApexChartOptions<CategoryMetric> _pieOptions = default!;
+
+    protected override void OnInitialized()
+    {
+        _lineOptions = new ApexChartOptions<DayMetric>
+        {
+            Chart = new Chart { Height = "300" },
+            Tooltip = new Tooltip
+            {
+                Y = new TooltipY
+                {
+                    Formatter = @"function(value) { return '$' + value.toFixed(2); }"
+                }
+            }
+        };
+
+        _barOptions = new ApexChartOptions<ProductMetric>
+        {
+            Chart = new Chart { Height = "300" },
+            Tooltip = new Tooltip
+            {
+                Y = new TooltipY
+                {
+                    Formatter = @"function(value) { return Math.round(value).toString(); }"
+                }
+            }
+        };
+
+        _pieOptions = new ApexChartOptions<CategoryMetric>
+        {
+            Chart = new Chart { Height = "300" },
+            Tooltip = new Tooltip
+            {
+                Y = new TooltipY
+                {
+                    Formatter = @"function(value) { return '$' + value.toFixed(2); }"
+                }
+            }
+        };
+    }
+
+    protected override void OnParametersSet()
+    {
+        _loading = IsLoading;
+        _errorMessage = ErrorMessage;
+        _hasData = HasData;
+    }
+}

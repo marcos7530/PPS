@@ -1,0 +1,91 @@
+@using System.Globalization
+
+<div class="money-input">
+    @if (!string.IsNullOrEmpty(Label))
+    {
+        <label class="money-input__label" for="@_inputId">@Label</label>
+    }
+    <div class="money-input__wrapper">
+        <span class="money-input__prefix">@Prefix</span>
+        <input id="@_inputId"
+               type="number"
+               step="0.01"
+               min="@Min"
+               max="@Max"
+               class="money-input__field"
+               value="@CurrentValueAsString"
+               @onchange="OnValueChanged"
+               aria-label="@(string.IsNullOrEmpty(Label) ? "Money amount" : Label)"
+               disabled="@Disabled" />
+    </div>
+</div>
+
+@code {
+    private readonly string _inputId = $"money-input-{Guid.NewGuid():N}";
+
+    /// <summary>
+    /// The current decimal value (two-way bindable).
+    /// </summary>
+    [Parameter]
+    public decimal Value { get; set; }
+
+    /// <summary>
+    /// Event callback for two-way binding on Value.
+    /// </summary>
+    [Parameter]
+    public EventCallback<decimal> ValueChanged { get; set; }
+
+    /// <summary>
+    /// Optional label text for the input.
+    /// </summary>
+    [Parameter]
+    public string? Label { get; set; }
+
+    /// <summary>
+    /// Currency prefix displayed before the input. Defaults to "$".
+    /// </summary>
+    [Parameter]
+    public string Prefix { get; set; } = "$";
+
+    /// <summary>
+    /// Minimum allowed value. Defaults to 0.
+    /// </summary>
+    [Parameter]
+    public decimal Min { get; set; } = 0m;
+
+    /// <summary>
+    /// Maximum allowed value. Defaults to 999999.99.
+    /// </summary>
+    [Parameter]
+    public decimal Max { get; set; } = 999999.99m;
+
+    /// <summary>
+    /// Whether the input is disabled.
+    /// </summary>
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    /// <summary>
+    /// The culture for formatting. Defaults to "en-US" for input parsing (period decimal).
+    /// </summary>
+    [Parameter]
+    public string Culture { get; set; } = "en-US";
+
+    private string CurrentValueAsString => Value.ToString("F2", CultureInfo.InvariantCulture);
+
+    private async Task OnValueChanged(ChangeEventArgs e)
+    {
+        if (decimal.TryParse(e.Value?.ToString(), NumberStyles.Any, CultureInfo.InvariantCulture, out var parsed))
+        {
+            // Round to 2 decimal places
+            parsed = Math.Round(parsed, 2, MidpointRounding.AwayFromZero);
+
+            // Clamp to min/max
+            if (parsed < Min) parsed = Min;
+            if (parsed > Max) parsed = Max;
+
+            Value = parsed;
+            await ValueChanged.InvokeAsync(Value);
+        }
+    }
+}

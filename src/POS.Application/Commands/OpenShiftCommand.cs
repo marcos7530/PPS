@@ -6,4 +6,5 @@ namespace POS.Application.Commands;
 public sealed record OpenShiftCommand(
     string CashDrawerId,
     Guid UserId,
-    decimal OpeningCashAmount);
+    decimal OpeningCashAmount,
+    IReadOnlyList<DenominationCount> Denominations);

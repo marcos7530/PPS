@@ -1,0 +1,40 @@
+.error-alert {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid #f5c6cb;
+    border-radius: 0.375rem;
+    background-color: #f8d7da;
+    color: #721c24;
+    font-size: 0.875rem;
+    line-height: 1.4;
+}
+
+.error-alert__message {
+    flex: 1;
+}
+
+.error-alert__dismiss {
+    flex-shrink: 0;
+    border: none;
+    background: transparent;
+    color: #721c24;
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    opacity: 0.7;
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.error-alert__dismiss:hover,
+.error-alert__dismiss:focus-visible {
+    opacity: 1;
+}

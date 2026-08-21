@@ -1,0 +1,215 @@
+@page "/users/create"
+@page "/users/{Id:guid}"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using POS.Application.Services
+@using POS.Application.Interfaces.Repositories
+@using POS.Domain.Entities
+@attribute [Authorize(Policy = AuthorizationPolicies.RequireAdministrator)]
+
+<h1>@(_isEdit ? "Editar Usuario" : "Crear Usuario")</h1>
+
+@if (_error is not null)
+{
+    <ErrorAlert Message="@_error" OnDismissed="() => _error = null" />
+}
+
+@if (_loading)
+{
+    <p>Cargando...</p>
+}
+else
+{
+    <form @onsubmit="HandleSubmit" class="admin-form">
+        <div class="form-group">
+            <label for="username">Usuario</label>
+            <input id="username" type="text" class="form-input" @bind="_username" maxlength="50" required />
+        </div>
+
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input id="email" type="email" class="form-input" @bind="_email" maxlength="100" required />
+        </div>
+
+        @if (!_isEdit)
+        {
+            <div class="form-group">
+                <label for="password">Contraseña</label>
+                <input id="password" type="password" class="form-input" @bind="_password" required />
+                <small class="form-help">Mínimo 8 caracteres: 1 mayúscula, 1 minúscula, 1 número, 1 carácter especial (!@#$%^&amp;*()_+-=[]{}|;:,.&lt;&gt;?).</small>
+            </div>
+        }
+
+        <div class="form-group">
+            <label for="fullname">Nombre Completo</label>
+            <input id="fullname" type="text" class="form-input" @bind="_fullName" maxlength="100" required />
+        </div>
+
+        <fieldset class="form-group">
+            <legend>Roles</legend>
+            @foreach (var role in _roles)
+            {
+                <label class="form-checkbox">
+                    <input type="checkbox"
+                           checked="@_selectedRoleIds.Contains(role.Id)"
+                           @onchange="e => ToggleRole(role.Id, (bool)(e.Value ?? false))" />
+                    <span>@role.Name</span>
+                </label>
+            }
+        </fieldset>
+
+        @if (_validationErrors.Count > 0)
+        {
+            <ul class="validation-errors" role="alert">
+                @foreach (var err in _validationErrors)
+                {
+                    <li>@err</li>
+                }
+            </ul>
+        }
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary" disabled="@_submitting">
+                @(_submitting ? "Guardando..." : (_isEdit ? "Guardar Cambios" : "Crear Usuario"))
+            </button>
+            <a href="/users" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+}
+
+@code {
+    [Parameter] public Guid? Id { get; set; }
+
+    [Inject] private UserService UserService { get; set; } = null!;
+    [Inject] private IRoleRepository RoleRepository { get; set; } = null!;
+    [Inject] private NavigationManager Navigation { get; set; } = null!;
+    [CascadingParameter] private Task<AuthenticationState> AuthStateTask { get; set; } = null!;
+
+    private bool _isEdit;
+    private bool _loading = true;
+    private bool _submitting;
+    private string? _error;
+    private List<string> _validationErrors = new();
+
+    private string _username = string.Empty;
+    private string _email = string.Empty;
+    private string _password = string.Empty;
+    private string _fullName = string.Empty;
+    private HashSet<Guid> _selectedRoleIds = new();
+    private IReadOnlyList<Role> _roles = Array.Empty<Role>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isEdit = Id.HasValue;
+        _roles = await RoleRepository.GetAllAsync();
+
+        if (_isEdit)
+        {
+            var result = await UserService.GetUserAsync(Id!.Value);
+            if (result.IsSuccess && result.Value is not null)
+            {
+                var user = result.Value;
+                _username = user.Username;
+                _email = user.Email;
+                _fullName = user.FullName;
+                _selectedRoleIds = user.UserRoles.Select(ur => ur.RoleId).ToHashSet();
+            }
+            else
+            {
+                _error = "Usuario no encontrado.";
+            }
+        }
+
+        _loading = false;
+    }
+
+    private void ToggleRole(Guid roleId, bool isChecked)
+    {
+        if (isChecked)
+            _selectedRoleIds.Add(roleId);
+        else
+            _selectedRoleIds.Remove(roleId);
+    }
+
+    private async Task HandleSubmit()
+    {
+        _validationErrors.Clear();
+        _error = null;
+
+        if (string.IsNullOrWhiteSpace(_username))
+            _validationErrors.Add("El nombre de usuario es obligatorio.");
+        if (string.IsNullOrWhiteSpace(_email))
+            _validationErrors.Add("El email es obligatorio.");
+        if (!_isEdit && string.IsNullOrWhiteSpace(_password))
+            _validationErrors.Add("La contraseña es obligatoria.");
+        if (string.IsNullOrWhiteSpace(_fullName))
+            _validationErrors.Add("El nombre completo es obligatorio.");
+        if (_selectedRoleIds.Count == 0)
+            _validationErrors.Add("Debe seleccionar al menos un rol.");
+
+        if (_validationErrors.Count > 0)
+            return;
+
+        _submitting = true;
+
+        var authState = await AuthStateTask;
+        var performedBy = GetCurrentUserId(authState);
+
+        if (_isEdit)
+        {
+            // Update profile
+            var updateResult = await UserService.UpdateUserAsync(
+                Id!.Value, _username, _email, _fullName, performedBy);
+
+            if (!updateResult.IsSuccess)
+            {
+                _error = MapError(updateResult.Error?.Code);
+                _submitting = false;
+                return;
+            }
+
+            // Update roles
+            var rolesResult = await UserService.UpdateRolesAsync(
+                Id!.Value, _selectedRoleIds.ToList(), performedBy);
+
+            if (!rolesResult.IsSuccess)
+            {
+                _error = MapError(rolesResult.Error?.Code);
+                _submitting = false;
+                return;
+            }
+        }
+        else
+        {
+            var createResult = await UserService.CreateUserAsync(
+                _username, _email, _password, _fullName,
+                _selectedRoleIds.ToList(), performedBy);
+
+            if (!createResult.IsSuccess)
+            {
+                _error = MapError(createResult.Error?.Code);
+                _submitting = false;
+                return;
+            }
+        }
+
+        Navigation.NavigateTo("/users");
+    }
+
+    private static string MapError(Domain.Common.ErrorCode? code) => code switch
+    {
+        Domain.Common.ErrorCode.DuplicateUsername => "El nombre de usuario ya existe.",
+        Domain.Common.ErrorCode.DuplicateEmail => "El email ya está registrado.",
+        Domain.Common.ErrorCode.InvalidEmailFormat => "El formato del email es inválido.",
+        Domain.Common.ErrorCode.PasswordTooWeak => "La contraseña no cumple los requisitos.",
+        Domain.Common.ErrorCode.LastAdministratorRequired => "Debe existir al menos un administrador.",
+        Domain.Common.ErrorCode.CannotRemoveOwnAdministratorRole => "No puede remover su propio rol de administrador.",
+        _ => "Ocurrió un error inesperado."
+    };
+
+    private static Guid GetCurrentUserId(AuthenticationState authState)
+    {
+        var claim = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+        return claim is not null && Guid.TryParse(claim.Value, out var id) ? id : Guid.Empty;
+    }
+}

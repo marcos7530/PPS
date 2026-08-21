@@ -16,7 +16,8 @@ public interface IReceiptRenderer
 }
 
 /// <summary>
-/// Data payload for receipt rendering.
+/// Data payload for receipt rendering (Req 17.1-17.17).
+/// Supports both transaction and return receipts, reprints, and voided transactions.
 /// </summary>
 public sealed record ReceiptPayload(
     string BusinessName,
@@ -24,6 +25,7 @@ public sealed record ReceiptPayload(
     long TransactionNumber,
     DateTimeOffset CompletedAt,
     string CashierName,
+    string? CustomerName,
     IReadOnlyList<ReceiptLinePayload> Lines,
     decimal Subtotal,
     decimal TaxAmount,
@@ -32,7 +34,20 @@ public sealed record ReceiptPayload(
     decimal AmountReceived,
     decimal ChangeDue,
     string PaymentMethod,
-    string? FooterText);
+    string? FooterText,
+    // Store credit details (Req 17.2)
+    decimal? StoreCreditAmount,
+    string? VoucherCodeLast4,
+    // Reprint info (Req 17.9)
+    string? ReprintText,
+    // Voided flag (Req 17.10)
+    string? VoidedText,
+    // Return receipt fields (Req 17.11)
+    bool IsReturn,
+    Guid? ReturnId,
+    Guid? OriginalTransactionId,
+    string? RefundMethod,
+    string? StoreCreditVoucherCode);
 
 /// <summary>
 /// Line item data for receipt rendering.

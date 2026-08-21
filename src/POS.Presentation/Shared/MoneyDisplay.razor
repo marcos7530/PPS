@@ -1,0 +1,36 @@
+@using System.Globalization
+
+<span class="money-display" aria-label="@AriaLabel">@FormattedAmount</span>
+
+@code {
+    /// <summary>
+    /// The monetary amount to display.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public decimal Amount { get; set; }
+
+    /// <summary>
+    /// Optional currency code prefix (e.g., "USD", "ARS"). Defaults to "$".
+    /// </summary>
+    [Parameter]
+    public string? CurrencyCode { get; set; }
+
+    /// <summary>
+    /// The culture to use for number formatting. Defaults to "es-AR".
+    /// </summary>
+    [Parameter]
+    public string Culture { get; set; } = "es-AR";
+
+    private string FormattedAmount
+    {
+        get
+        {
+            var cultureInfo = CultureInfo.GetCultureInfo(Culture);
+            var formatted = Amount.ToString("N2", cultureInfo);
+            var prefix = string.IsNullOrEmpty(CurrencyCode) ? "$" : CurrencyCode;
+            return $"{prefix} {formatted}";
+        }
+    }
+
+    private string AriaLabel => $"{FormattedAmount}";
+}

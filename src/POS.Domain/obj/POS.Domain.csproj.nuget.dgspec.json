@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\marco\\OneDrive\\Escritorio\\PPS\\src\\POS.Domain\\POS.Domain.csproj": {}
+    "c:\\Users\\marco\\OneDrive\\Escritorio\\PPS\\src\\POS.Domain\\POS.Domain.csproj": {}
   },
   "projects": {
-    "C:\\Users\\marco\\OneDrive\\Escritorio\\PPS\\src\\POS.Domain\\POS.Domain.csproj": {
+    "c:\\Users\\marco\\OneDrive\\Escritorio\\PPS\\src\\POS.Domain\\POS.Domain.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\marco\\OneDrive\\Escritorio\\PPS\\src\\POS.Domain\\POS.Domain.csproj",
+        "projectUniqueName": "c:\\Users\\marco\\OneDrive\\Escritorio\\PPS\\src\\POS.Domain\\POS.Domain.csproj",
         "projectName": "POS.Domain",
-        "projectPath": "C:\\Users\\marco\\OneDrive\\Escritorio\\PPS\\src\\POS.Domain\\POS.Domain.csproj",
+        "projectPath": "c:\\Users\\marco\\OneDrive\\Escritorio\\PPS\\src\\POS.Domain\\POS.Domain.csproj",
         "packagesPath": "C:\\Users\\marco\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\marco\\OneDrive\\Escritorio\\PPS\\src\\POS.Domain\\obj\\",
+        "outputPath": "c:\\Users\\marco\\OneDrive\\Escritorio\\PPS\\src\\POS.Domain\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

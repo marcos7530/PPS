@@ -264,8 +264,8 @@ This plan implements a comprehensive Point of Sale system in .NET 8 with Blazor 
     - Concurrent attempts succeed at most once; void restores voucher for exactly one more use; customer balance never goes negative
     - **Validates: Requirements 9.9, 9.10, 9.11, 9.12, 9.13, 9.14, 9.15, 20.9**
 
-- [ ] 9. Implement returns and voids
-  - [~] 9.1 Implement ReturnService
+- [x] 9. Implement returns and voids
+  - [x] 9.1 Implement ReturnService
     - Load returnable transaction (must exist, not older than 90 days, not voided)
     - Display original line items with available return quantities
     - Validate return quantity (1 to original qty minus already returned)
@@ -279,7 +279,7 @@ This plan implements a comprehensive Point of Sale system in .NET 8 with Blazor 
     - Record full return details in AuditLog
     - _Requirements: 11.1-11.16_
 
-  - [~] 9.2 Implement VoidService
+  - [x] 9.2 Implement VoidService
     - Validate: same operating day, shift still open, not already voided, no existing returns
     - Require void reason and notes (1-500 chars)
     - Atomically restore inventory for all line items
@@ -299,8 +299,8 @@ This plan implements a comprehensive Point of Sale system in .NET 8 with Blazor 
     - Authorization required iff discount % exceeds role limit; valid manager credentials accept; session of applying user remains intact; no session created for authorizer
     - **Validates: Requirements 19.10, 19.11, 19.12, 19.13, 11.10, 11.11**
 
-- [ ] 10. Implement cash shifts
-  - [~] 10.1 Implement ShiftService
+- [x] 10. Implement cash shifts
+  - [x] 10.1 Implement ShiftService
     - Implement shift opening: validate one shift per user, one per drawer; record cash count by denomination
     - Implement deposits and withdrawals with amount, reason, notes
     - Calculate expected cash balance: `opening + cash_sales(not voided) + deposits - withdrawals - cash_refunds - voided_cash_sales`
@@ -315,8 +315,8 @@ This plan implements a comprehensive Point of Sale system in .NET 8 with Blazor 
     - For any shift history (sales, deposits, withdrawals, refunds, voids), expected cash matches model; card sales don't affect expected; variance = closing - expected; frozen after close
     - **Validates: Requirements 12.8, 12.10, 12.11, 12.13, 12.14, 9.19, 9.20, 11.9, 20.8**
 
-- [ ] 11. Implement customers
-  - [~] 11.1 Implement CustomerService
+- [x] 11. Implement customers
+  - [x] 11.1 Implement CustomerService
     - Implement customer CRUD: name (1-100), email (unique, optional), phone (7-20, warn on duplicate), notes
     - Implement customer search: name (partial, CI/AI), email (exact), phone (partial), identifier
     - Link customers to transactions (optional)

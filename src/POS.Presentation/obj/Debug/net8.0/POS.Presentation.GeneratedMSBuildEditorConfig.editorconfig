@@ -35,9 +35,29 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSW5kZXgucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/marco/OneDrive/Escritorio/PPS/src/POS.Presentation/Shared/MoneyDisplay.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkXE1vbmV5RGlzcGxheS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/marco/OneDrive/Escritorio/PPS/src/POS.Presentation/Shared/NavMenu.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkXE5hdk1lbnUucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/marco/OneDrive/Escritorio/PPS/src/POS.Presentation/Shared/ResponsiveTable.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkXFJlc3BvbnNpdmVUYWJsZS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/marco/OneDrive/Escritorio/PPS/src/POS.Presentation/_Imports.razor]
 build_metadata.AdditionalFiles.TargetPath = X0ltcG9ydHMucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/marco/OneDrive/Escritorio/PPS/src/POS.Presentation/Shared/ErrorAlert.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkXEVycm9yQWxlcnQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-ibd0ru73li
+
+[C:/Users/marco/OneDrive/Escritorio/PPS/src/POS.Presentation/Shared/MoneyInput.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkXE1vbmV5SW5wdXQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-5s651rljca
 
 [C:/Users/marco/OneDrive/Escritorio/PPS/src/POS.Presentation/Pages/_Host.cshtml]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcX0hvc3QuY3NodG1s

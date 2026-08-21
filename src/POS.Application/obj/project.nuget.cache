@@ -1,8 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "2Rlvm17pzxc=",
+  "dgSpecHash": "CprY1JnByzo=",
   "success": true,
   "projectFilePath": "C:\\Users\\marco\\OneDrive\\Escritorio\\PPS\\src\\POS.Application\\POS.Application.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "C:\\Users\\marco\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\8.0.2\\microsoft.extensions.dependencyinjection.abstractions.8.0.2.nupkg.sha512"
+  ],
   "logs": []
 }

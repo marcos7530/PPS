@@ -1,0 +1,73 @@
+@inject IJSRuntime JS
+
+<div class="barcode-capture">
+    <label class="barcode-capture__label" for="@_inputId">
+        <span class="barcode-capture__icon" aria-hidden="true">&#x1F4F7;</span>
+        Escanear producto
+    </label>
+    <input id="@_inputId"
+           type="text"
+           class="barcode-capture__input"
+           placeholder="Escanee o escriba el código de barras..."
+           autocomplete="off"
+           @ref="_inputRef"
+           value="@_buffer"
+           @oninput="OnInput"
+           @onkeydown="OnKeyDown"
+           aria-label="Barcode scanner input" />
+</div>
+
+@code {
+    private readonly string _inputId = $"barcode-input-{Guid.NewGuid():N}";
+    private ElementReference _inputRef;
+    private string _buffer = string.Empty;
+
+    /// <summary>
+    /// Fired when a barcode scan is completed (Enter key pressed with non-empty buffer).
+    /// </summary>
+    [Parameter]
+    public EventCallback<string> OnBarcodeScanned { get; set; }
+
+    /// <summary>
+    /// Whether the field is disabled.
+    /// </summary>
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await FocusInputAsync();
+        }
+    }
+
+    private void OnInput(ChangeEventArgs e)
+    {
+        _buffer = e.Value?.ToString() ?? string.Empty;
+    }
+
+    private async Task OnKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !string.IsNullOrWhiteSpace(_buffer))
+        {
+            var scannedValue = _buffer.Trim();
+            _buffer = string.Empty;
+
+            await OnBarcodeScanned.InvokeAsync(scannedValue);
+            await FocusInputAsync();
+        }
+    }
+
+    private async Task FocusInputAsync()
+    {
+        try
+        {
+            await _inputRef.FocusAsync();
+        }
+        catch (JSException)
+        {
+            // Element may not be rendered yet
+        }
+    }
+}

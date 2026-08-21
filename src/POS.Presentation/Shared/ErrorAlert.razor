@@ -1,0 +1,74 @@
+@using POS.Domain.Common
+@using POS.Presentation.Localization
+
+@if (_visible && !string.IsNullOrEmpty(_message))
+{
+    <div class="error-alert" role="alert" aria-live="assertive">
+        <span class="error-alert__message">@_message</span>
+        <button type="button"
+                class="error-alert__dismiss"
+                aria-label="Dismiss error"
+                @onclick="Dismiss">
+            &times;
+        </button>
+    </div>
+}
+
+@code {
+    private bool _visible = true;
+    private string? _message;
+
+    /// <summary>
+    /// The error code to display. When set, the localized message is resolved automatically.
+    /// </summary>
+    [Parameter]
+    public ErrorCode? Code { get; set; }
+
+    /// <summary>
+    /// Optional arguments for placeholder replacement in the error message template.
+    /// </summary>
+    [Parameter]
+    public IReadOnlyDictionary<string, object?>? Args { get; set; }
+
+    /// <summary>
+    /// Optional override message. When provided, takes precedence over Code-based lookup.
+    /// </summary>
+    [Parameter]
+    public string? Message { get; set; }
+
+    /// <summary>
+    /// The culture to use for message localization. Defaults to "es-AR".
+    /// </summary>
+    [Parameter]
+    public string Culture { get; set; } = "es-AR";
+
+    /// <summary>
+    /// Event callback invoked when the alert is dismissed.
+    /// </summary>
+    [Parameter]
+    public EventCallback OnDismissed { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        _visible = true;
+
+        if (!string.IsNullOrEmpty(Message))
+        {
+            _message = Message;
+        }
+        else if (Code.HasValue)
+        {
+            _message = ErrorMessageLocalizer.Format(Code.Value, Args, Culture);
+        }
+        else
+        {
+            _message = null;
+        }
+    }
+
+    private async Task Dismiss()
+    {
+        _visible = false;
+        await OnDismissed.InvokeAsync();
+    }
+}
