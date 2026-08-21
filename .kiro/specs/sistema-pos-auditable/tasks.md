@@ -170,8 +170,8 @@ This plan implements a comprehensive Point of Sale system in .NET 8 with Blazor 
     - For any category tree with sparse margins and any product, resolved margin matches naive parent-walk; suggested price uses half-up rounding
     - **Validates: Requirements 15.5, 15.6, 15.7, 15.8, 15.11**
 
-- [ ] 6. Implement inventory and product management
-  - [~] 6.1 Implement InventoryService and product CRUD
+- [x] 6. Implement inventory and product management
+  - [x] 6.1 Implement InventoryService and product CRUD
     - Implement product creation with name, SKU, description, price, cost price, category, quantity, min stock threshold
     - Enforce SKU uniqueness across all products (including deactivated)
     - Implement product modification and soft deactivation
@@ -180,14 +180,14 @@ This plan implements a comprehensive Point of Sale system in .NET 8 with Blazor 
     - Reject transactions with deactivated products
     - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6, 10.7, 10.8, 10.9, 10.10_
 
-  - [~] 6.2 Implement ProductSearchService
+  - [x] 6.2 Implement ProductSearchService
     - Implement barcode exact match search (< 1 second)
     - Implement SKU exact match search (< 1 second)
     - Implement product name partial match search (case/accent insensitive via collation, < 2 seconds, top 50)
     - Display "No products found" when zero matches, "Showing 50 of N" when > 50 matches
     - _Requirements: 18.6, 18.7, 18.8, 18.9, 18.10_
 
-  - [~] 6.3 Implement barcode management
+  - [x] 6.3 Implement barcode management
     - Validate barcode format (EAN-13: 13 digits, UPC-A: 12 digits, Code 128: 1-48 printable ASCII)
     - Validate check digit for EAN-13 and UPC-A
     - Enforce barcode uniqueness across all products (including deactivated)
@@ -195,7 +195,7 @@ This plan implements a comprehensive Point of Sale system in .NET 8 with Blazor 
     - Record barcode changes in AuditLog
     - _Requirements: 18.1, 18.2, 18.3, 18.4, 18.5, 18.17, 18.18, 18.19_
 
-  - [~] 6.4 Implement ProductImageService
+  - [x] 6.4 Implement ProductImageService
     - Validate file by magic bytes (JPEG, PNG, WebP), not extension
     - Enforce size (1-5,242,880 bytes) and dimensions (≤ 4000×4000 pixels)
     - Validate full image decode
