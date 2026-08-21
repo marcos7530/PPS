@@ -105,8 +105,8 @@ This plan implements a comprehensive Point of Sale system in .NET 8 with Blazor 
 - [x] 3. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 4. Implement authentication, users, and roles
-  - [~] 4.1 Implement BCryptPasswordHasher and AuthenticationService
+- [x] 4. Implement authentication, users, and roles
+  - [x] 4.1 Implement BCryptPasswordHasher and AuthenticationService
     - Implement password hashing with BCrypt cost factor 12
     - Implement login with dummy verification for timing equality on invalid usernames
     - Implement session creation with 128-bit cryptographically random token, 8-hour expiration
@@ -115,7 +115,7 @@ This plan implements a comprehensive Point of Sale system in .NET 8 with Blazor 
     - Return identical error message "Invalid credentials" for wrong username and wrong password
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8_
 
-  - [~] 4.2 Implement UserService with role management
+  - [x] 4.2 Implement UserService with role management
     - Implement user CRUD with username (1-50), email (valid, max 100), password, and roles
     - Enforce duplicate username/email rejection
     - Enforce last administrator protection (UPDLOCK counting on user_role)
@@ -123,7 +123,7 @@ This plan implements a comprehensive Point of Sale system in .NET 8 with Blazor 
     - Apply role permission changes on next session
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 5.1-5.8_
 
-  - [~] 4.3 Implement password recovery flow
+  - [x] 4.3 Implement password recovery flow
     - Generate 128-bit token with 24-hour expiration
     - Send reset URL via MailKit with 3 retry attempts
     - Invalidate previous tokens on new request
