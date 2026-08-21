@@ -142,8 +142,8 @@ This plan implements a comprehensive Point of Sale system in .NET 8 with Blazor 
     - For every (role, operation) pair, verify access matches the design permission matrix; denied operations produce no state change
     - **Validates: Requirements 2.5, 2.6, 5.1, 5.2, 5.5, 9.2, 11.1, 12.15, 13.11, 15.2, 16.2, 20.2**
 
-- [ ] 5. Implement category hierarchy and profit margins
-  - [~] 5.1 Implement CategoryTreeService with closure table
+- [x] 5. Implement category hierarchy and profit margins
+  - [x] 5.1 Implement CategoryTreeService with closure table
     - Implement category CRUD with name (1-100), parent, description, display order
     - Maintain `CategoryClosure` table transactionally on create/move/deactivate
     - Validate depth <= 5 on create and move
@@ -152,7 +152,7 @@ This plan implements a comprehensive Point of Sale system in .NET 8 with Blazor 
     - Enforce unique (parent_category_id, name) including root level
     - _Requirements: 14.1, 14.2, 14.3, 14.4, 14.5, 14.6, 14.7, 14.8, 14.9, 14.10, 14.11, 14.12, 14.13, 14.14, 14.15, 14.16, 14.17, 14.18_
 
-  - [~] 5.2 Implement MarginService with hierarchical resolution
+  - [x] 5.2 Implement MarginService with hierarchical resolution
     - Implement effective margin resolution: product > nearest ancestor category > global (using closure table)
     - Calculate `SuggestedPrice = CostPrice × (1 + EffectiveMargin / 100)` with half-up rounding to 2 decimals
     - Support global margin CRUD (Admin only), category margin CRUD (Manager+), product margin CRUD (Manager+)
